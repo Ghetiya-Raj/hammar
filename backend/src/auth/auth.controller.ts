@@ -1,10 +1,27 @@
 import type { Request, Response } from 'express';
-import { loginSchema, registerSchema } from './auth.schema.js';
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from './auth.schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
-import { loginUser, registerUser } from './auth.service.js';
-import { createAccessToken } from '../utils/jwt.js';
+
+import {
+  forgotPassword,
+  loginUser,
+  registerUser,
+  resetPassword,
+} from './auth.service.js';
+
+import {
+  findValidToken,
+  issueAuthTokens,
+  revokeAllUserTokens,
+  revokeToken,
+} from './token.service.js';
 import { AuthenticatedRequest } from './auth.middleware.js';
 import {
   setupTwoFactor,
@@ -82,11 +99,18 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    res.cookie('access_token', loginResult.token, {
+    res.cookie('access_token', loginResult.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', loginResult.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
@@ -112,8 +136,87 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export function logout(_req: Request, res: Response) {
+export async function refresh(req: Request, res: Response) {
+  const refreshToken = req.cookies?.refresh_token;
+
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: 'Refresh token required',
+    });
+  }
+
+  try {
+    const storedToken = await findValidToken(refreshToken, 'refresh');
+
+    if (!storedToken) {
+      return res.status(401).json({
+        message: 'Invalid or expired refresh token',
+      });
+    }
+
+    const [user] = await db
+      .select({
+        id: users.id,
+        role: users.role,
+        tokenVersion: users.tokenVersion,
+      })
+      .from(users)
+      .where(eq(users.id, storedToken.userId))
+      .limit(1);
+
+    if (!user) {
+      return res.status(401).json({
+        message: 'User not found',
+      });
+    }
+
+    await revokeToken(refreshToken);
+
+    const authTokens = await issueAuthTokens({
+      id: user.id,
+      role: user.role,
+      tokenVersion: user.tokenVersion,
+    });
+
+    res.cookie('access_token', authTokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', authTokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: 'Token refreshed successfully',
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: 'Internal server error',
+    });
+  }
+}
+
+export async function logout(req: Request, res: Response) {
+  const refreshToken = req.cookies?.refresh_token;
+
+  if (refreshToken) {
+    await revokeToken(refreshToken);
+  }
   res.clearCookie('access_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+
+  res.clearCookie('refresh_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -192,7 +295,15 @@ export async function logoutAllDevices(
       })
       .where(eq(users.id, req.user.userId));
 
+    await revokeAllUserTokens(req.user.userId);
+
     res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -260,17 +371,24 @@ export async function verifyTwoFactorAuth(
   try {
     const result = await verifyAndEnableTwoFactor(req.user.userId, code);
 
-    const accessToken = createAccessToken({
-      userId: result.user.id,
+    const authTokens = await issueAuthTokens({
+      id: result.user.id,
       role: result.user.role,
       tokenVersion: result.user.tokenVersion,
     });
 
-    res.cookie('access_token', accessToken, {
+    res.cookie('access_token', authTokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', authTokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.clearCookie('two_factor_setup_token', {
@@ -324,18 +442,24 @@ export async function verifyTwoFactorLogin(req: Request, res: Response) {
     }
 
     const user = await verifyTwoFactorForLogin(payload.userId, code);
-
-    const accessToken = createAccessToken({
-      userId: user.id,
+    const authTokens = await issueAuthTokens({
+      id: user.id,
       role: user.role,
       tokenVersion: user.tokenVersion,
     });
 
-    res.cookie('access_token', accessToken, {
+    res.cookie('access_token', authTokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', authTokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.clearCookie('two_factor_login_token', {
@@ -361,6 +485,73 @@ export async function verifyTwoFactorLogin(req: Request, res: Response) {
 
     return res.status(401).json({
       message,
+    });
+  }
+}
+
+export async function forgotPasswordController(req: Request, res: Response) {
+  const result = forgotPasswordSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      message: 'Invalid email',
+      errors: result.error.flatten().fieldErrors,
+    });
+  }
+
+  try {
+    const resultData = await forgotPassword(result.data.email);
+
+    // Do not reveal whether an account exists.
+    if (!resultData) {
+      return res.status(200).json({
+        message:
+          'If an account exists with this email, a password reset link has been sent.',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'If an account exists, a password reset link has been sent.',
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: 'Internal server error',
+    });
+  }
+}
+
+export async function resetPasswordController(req: Request, res: Response) {
+  const result = resetPasswordSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      message: 'Invalid reset password data',
+      errors: result.error.flatten().fieldErrors,
+    });
+  }
+
+  try {
+    const success = await resetPassword(
+      result.data.token,
+      result.data.newPassword,
+    );
+
+    if (!success) {
+      return res.status(400).json({
+        message: 'Invalid or expired reset token',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Password reset successfully',
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: 'Internal server error',
     });
   }
 }

@@ -29,6 +29,13 @@
       "when": 1789489452041,
       "tag": "0003_faulty_william_stryker",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789544426820,
+      "tag": "0004_pink_the_twelve",
+      "breakpoints": true
     }
   ]
 }

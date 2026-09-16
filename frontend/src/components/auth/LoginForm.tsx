@@ -261,6 +261,15 @@ export default function LoginForm() {
                     {errors.password}
                   </p>
                 )}
+
+                <div className="text-right">
+                  <a
+                    href="/forgot-password"
+                    className="text-xs font-semibold text-[#000080] transition hover:underline"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
               </div>
 
               {/* Submit CTA */}

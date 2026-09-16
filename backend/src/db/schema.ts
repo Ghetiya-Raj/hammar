@@ -24,6 +24,12 @@ export const settlementStatusEnum = pgEnum('settlement_status', [
   'unsold',
 ]);
 
+export const tokenTypeEnum = pgEnum('token_type', [
+  'access',
+  'refresh',
+  'password_reset',
+]);
+
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
 
@@ -120,6 +126,36 @@ export const bids = pgTable('bids', {
   amount: integer('amount').notNull(),
 
   createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const tokens = pgTable('tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+
+  tokenHash: text('token_hash').notNull().unique(),
+
+  type: tokenTypeEnum('type').notNull(),
+
+  expiresAt: timestamp('expires_at', {
+    withTimezone: true,
+  }).notNull(),
+
+  usedAt: timestamp('used_at', {
+    withTimezone: true,
+  }),
+
+  revokedAt: timestamp('revoked_at', {
+    withTimezone: true,
+  }),
+
+  createdAt: timestamp('created_at', {
+    withTimezone: true,
+  })
     .notNull()
     .defaultNow(),
 });
