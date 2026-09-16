@@ -33,9 +33,13 @@ export const users = pgTable('users', {
 
   passwordHash: text('password_hash').notNull(),
 
+  tokenVersion: integer('token_version').notNull().default(0),
+
   role: userRoleEnum('role').notNull(),
 
   isTwoFactorEnabled: boolean('is_two_factor_enabled').notNull().default(false),
+
+  twoFactorSecret: text('two_factor_secret'),
 
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
