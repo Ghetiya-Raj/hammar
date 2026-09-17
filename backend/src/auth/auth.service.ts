@@ -36,12 +36,14 @@ export async function registerUser(input: RegisterInput) {
       email: input.email,
       passwordHash,
       role: input.role,
+      avatarUrl: input.avatarUrl ?? null,
     })
     .returning({
       id: users.id,
       name: users.name,
       email: users.email,
       role: users.role,
+      avatarUrl: users.avatarUrl,
     });
 
   if (!user) {

@@ -8,6 +8,7 @@ import {
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
+import { uploadAvatar } from '../services/cloudinary.service.js';
 
 import {
   forgotPassword,
@@ -30,6 +31,14 @@ import {
 } from './twoFactor.service.js';
 
 export async function register(req: Request, res: Response) {
+  const avatarFile = req.file;
+
+  if (avatarFile && !avatarFile.mimetype.startsWith('image/')) {
+    return res.status(400).json({
+      message: 'Only image files are allowed for avatar',
+    });
+  }
+
   const result = registerSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -40,7 +49,17 @@ export async function register(req: Request, res: Response) {
   }
 
   try {
-    const { user, setupToken } = await registerUser(result.data);
+    let avatarUrl: string | null = null;
+
+    if (avatarFile) {
+      const uploadResult = await uploadAvatar(avatarFile);
+      avatarUrl = uploadResult.secure_url;
+    }
+
+    const { user, setupToken } = await registerUser({
+      ...result.data,
+      avatarUrl,
+    });
 
     res.cookie('two_factor_setup_token', setupToken, {
       httpOnly: true,
