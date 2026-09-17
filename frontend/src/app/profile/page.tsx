@@ -1,16 +1,20 @@
+'use client';
+
 import ProfileForm from '@/components/profile/ProfileForm';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
+  const router = useRouter();
   return (
     <main className="min-h-screen w-full bg-[#EBF3F8] py-10 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => router.back()}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#000080] hover:underline"
         >
-          ← Back to Home
-        </Link>
+          ← Back
+        </button>
         {/* Page Header Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2">
           <div>

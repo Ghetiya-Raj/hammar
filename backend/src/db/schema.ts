@@ -107,6 +107,7 @@ export const auctionImages = pgTable('auction_images', {
 
   imageUrl: text('image_url').notNull(),
 
+  publicId: text('public_id'),
   sortOrder: integer('sort_order').notNull().default(0),
 
   createdAt: timestamp('created_at', { withTimezone: true })

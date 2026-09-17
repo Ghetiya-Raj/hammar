@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginFormSchema, type LoginFormData } from '@/lib/auth.schema';
-import { API_URL } from '@/lib/api';
+import { getMyProfile, API_URL } from '@/lib/api';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -86,7 +86,13 @@ export default function LoginForm() {
         return;
       }
 
-      router.push('/');
+      const user = await getMyProfile();
+
+      if (user.role === 'seller') {
+        router.push('/seller');
+      } else {
+        router.push('/buyer');
+      }
     } catch {
       setServerError('Unable to connect to the server. Please try again.');
     } finally {

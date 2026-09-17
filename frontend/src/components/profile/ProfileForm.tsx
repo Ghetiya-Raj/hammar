@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { uploadAvatar } from '@/lib/cloudinary';
 import { getMyProfile, updateMyProfile } from '@/lib/api';
+import Image from 'next/image';
 
 type Profile = {
   id: string;
@@ -187,9 +188,11 @@ export default function ProfileForm() {
           <div className="relative group shrink-0">
             <div className="relative h-24 w-24 overflow-hidden rounded-full ring-4 ring-slate-100 shadow-inner bg-slate-100 flex items-center justify-center">
               {avatarUrl ? (
-                <img
+                <Image
                   src={avatarUrl}
                   alt="Profile preview"
+                  width={96}
+                  height={96}
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />
               ) : (

@@ -4,6 +4,7 @@ import express from 'express';
 import authRouter from './auth/auth.routes.js';
 import cookieParser from 'cookie-parser';
 import userRoutes from './routes/user.routes.js';
+import auctionRoutes from './routes/auction.routes.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRoutes);
+app.use('/api/auctions', auctionRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.status(200).json({

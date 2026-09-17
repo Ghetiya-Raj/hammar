@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { API_URL, getMyProfile } from '@/lib/api';
+import Image from 'next/image';
 
 type User = {
   id: string;
@@ -162,9 +163,11 @@ export default function Navbar() {
                 aria-expanded={isMenuOpen}
               >
                 {user.avatarUrl ? (
-                  <img
+                  <Image
                     src={user.avatarUrl}
                     alt={user.name}
+                    width={40}
+                    height={40}
                     className="h-full w-full object-cover"
                   />
                 ) : (
