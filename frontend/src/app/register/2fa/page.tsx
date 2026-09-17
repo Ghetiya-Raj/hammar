@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import TwoFactorSetup from '@/components/auth/TwoFactorSetup';
+import { getMyProfile } from '@/lib/api';
 
 export default function RegisterTwoFactorPage() {
   const router = useRouter();
@@ -21,8 +22,14 @@ export default function RegisterTwoFactorPage() {
         </div>
 
         <TwoFactorSetup
-          onEnabled={() => {
-            router.push('/');
+          onEnabled={async () => {
+            const user = await getMyProfile();
+
+            if (user.role === 'seller') {
+              router.push('/seller');
+            } else {
+              router.push('/buyer');
+            }
           }}
         />
       </div>

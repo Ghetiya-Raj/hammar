@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { verifyTwoFactorLogin } from '@/lib/api';
+import { getMyProfile, verifyTwoFactorLogin } from '@/lib/api';
 
 export default function LoginTwoFactorPage() {
   const router = useRouter();
@@ -23,7 +23,13 @@ export default function LoginTwoFactorPage() {
 
       await verifyTwoFactorLogin(code);
 
-      router.push('/');
+      const user = await getMyProfile();
+
+      if (user.role === 'seller') {
+        router.push('/seller');
+      } else {
+        router.push('/buyer');
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Two-factor authentication failed',
