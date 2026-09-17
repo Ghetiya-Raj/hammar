@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getCurrentUser } from '@/lib/api';
+import { API_URL, getCurrentUser } from '@/lib/api';
 
 type User = {
   id: string;
@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -27,7 +27,7 @@ export default function Navbar() {
 
   const handleLogoutAll = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout-all', {
+      await fetch(`${API_URL}/api/auth/logout-all`, {
         method: 'POST',
         credentials: 'include',
       });
