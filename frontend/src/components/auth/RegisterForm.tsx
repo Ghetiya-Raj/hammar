@@ -71,13 +71,21 @@ export default function RegisterForm() {
     try {
       setIsLoading(true);
 
+      const requestData = new FormData();
+
+      requestData.append('name', validation.data.name);
+      requestData.append('email', validation.data.email);
+      requestData.append('password', validation.data.password);
+      requestData.append('role', validation.data.role);
+
+      if (validation.data.avatar) {
+        requestData.append('avatar', validation.data.avatar);
+      }
+
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(validation.data),
+        body: requestData,
       });
 
       const data = await response.json();
@@ -90,7 +98,6 @@ export default function RegisterForm() {
 
       setSuccessMessage('Registration successful! Redirecting...');
 
-      // Redirect reliably to home page and refresh session/cookies
       setTimeout(() => {
         router.push('/register/2fa');
       }, 1000);
@@ -292,6 +299,50 @@ export default function RegisterForm() {
 
             {/* Role Field */}
             <div className="space-y-1.5">
+              {/* Profile Image Field */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="avatar"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#000080]"
+                >
+                  Profile Image
+                </label>
+
+                <input
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    setFormData((previous) => ({
+                      ...previous,
+                      avatar: file,
+                    }));
+
+                    setErrors((previous) => ({
+                      ...previous,
+                      avatar: undefined,
+                    }));
+
+                    setServerError('');
+                    setSuccessMessage('');
+                  }}
+                  disabled={isLoading}
+                  className="w-full rounded-xl border border-[#6D8196]/30 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#ADD8E6]"
+                />
+
+                <p className="text-xs text-[#6D8196]">
+                  Optional. Select an image from your device. Maximum size: 5
+                  MB.
+                </p>
+
+                {errors.avatar && (
+                  <p className="text-xs font-medium text-red-600">
+                    {errors.avatar}
+                  </p>
+                )}
+              </div>
               <label
                 htmlFor="role"
                 className="block text-xs font-bold uppercase tracking-wider text-[#000080]"

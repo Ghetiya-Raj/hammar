@@ -39,6 +39,8 @@ export const users = pgTable('users', {
 
   passwordHash: text('password_hash').notNull(),
 
+  avatarUrl: text('avatar_url'),
+
   tokenVersion: integer('token_version').notNull().default(0),
 
   role: userRoleEnum('role').notNull(),

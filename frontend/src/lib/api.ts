@@ -75,3 +75,40 @@ export async function verifyTwoFactorLogin(code: string) {
 
   return data;
 }
+
+export async function getMyProfile() {
+  const response = await fetch(`${API_URL}/api/users/me`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch profile');
+  }
+
+  return data.user;
+}
+
+export async function updateMyProfile(data: {
+  name?: string;
+  avatarUrl?: string | null;
+}) {
+  const response = await fetch(`${API_URL}/api/users/me`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    throw new Error(responseData.message || 'Failed to update profile');
+  }
+
+  return responseData;
+}

@@ -15,6 +15,16 @@ export const registerFormSchema = z.object({
     .max(100, 'Password must be at most 100 characters'),
 
   role: z.enum(['buyer', 'seller']),
+
+  avatar: z
+    .instanceof(File)
+    .refine((file) => file.type.startsWith('image/'), {
+      message: 'Please select an image file',
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: 'Avatar image must be smaller than 5 MB',
+    })
+    .optional(),
 });
 
 export type RegisterFormData = z.infer<typeof registerFormSchema>;
