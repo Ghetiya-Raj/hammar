@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { registerFormSchema, type RegisterFormData } from '@/lib/auth.schema';
 import Image from 'next/image';
 import Link from 'next/link';
+import { API_URL } from '@/lib/api';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function RegisterForm() {
     try {
       setIsLoading(true);
 
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
         headers: {

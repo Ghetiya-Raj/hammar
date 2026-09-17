@@ -1,4 +1,8 @@
-const API_URL = 'http://localhost:5000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error('NEXT_PUBLIC_API_URL is not defined');
+}
 
 export async function getCurrentUser() {
   const response = await fetch(`${API_URL}/api/auth/me`, {
