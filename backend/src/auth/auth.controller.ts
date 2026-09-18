@@ -106,8 +106,8 @@ export async function login(req: Request, res: Response) {
     if (loginResult.requiresTwoFactor) {
       res.cookie('two_factor_login_token', loginResult.twoFactorLoginToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 10 * 60 * 1000,
       });
 
@@ -199,15 +199,15 @@ export async function refresh(req: Request, res: Response) {
 
     res.cookie('access_token', authTokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie('refresh_token', authTokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -483,8 +483,8 @@ export async function verifyTwoFactorLogin(req: Request, res: Response) {
 
     res.clearCookie('two_factor_login_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
     });
 
     return res.status(200).json({
