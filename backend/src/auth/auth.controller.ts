@@ -63,8 +63,8 @@ export async function register(req: Request, res: Response) {
 
     res.cookie('two_factor_setup_token', setupToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 10 * 60 * 1000,
     });
 
@@ -121,14 +121,14 @@ export async function login(req: Request, res: Response) {
     res.cookie('access_token', loginResult.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie('refresh_token', loginResult.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -232,13 +232,13 @@ export async function logout(req: Request, res: Response) {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'none',
   });
 
   res.clearCookie('refresh_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'none',
   });
 
   return res.status(200).json({
@@ -319,13 +319,13 @@ export async function logoutAllDevices(
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
     });
 
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
     });
 
     return res.status(200).json({
@@ -398,22 +398,22 @@ export async function verifyTwoFactorAuth(
 
     res.cookie('access_token', authTokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie('refresh_token', authTokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.clearCookie('two_factor_setup_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
     });
 
     return res.status(200).json({
@@ -470,14 +470,14 @@ export async function verifyTwoFactorLogin(req: Request, res: Response) {
     res.cookie('access_token', authTokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie('refresh_token', authTokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
